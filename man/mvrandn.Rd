@@ -15,7 +15,7 @@ mvrandn(
   m = 30,
   sigma = NULL,
   N = 1000,
-  verbose = F
+  verbose = FALSE
 )
 }
 \arguments{

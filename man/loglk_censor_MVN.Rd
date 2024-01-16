@@ -15,7 +15,7 @@ loglk_censor_MVN(
   m = 30,
   NLevel1 = 10,
   NLevel2 = 1000,
-  verbose = T
+  verbose = TRUE
 )
 }
 \arguments{

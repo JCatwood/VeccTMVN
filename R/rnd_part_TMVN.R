@@ -20,7 +20,7 @@ library(truncnorm)
 #' @export
 ptmvrandn <- function(locs, indCensor, y, bCensor,
                       covName = NULL, covParms = NULL, m = 30,
-                      N = 1e3, verbose = T, reorder = T) {
+                      N = 1e3, verbose = TRUE, reorder = TRUE) {
   ## standardize variance ------------------------------
   parm_sd <- sqrt(covParms[1])
   y <- y / parm_sd

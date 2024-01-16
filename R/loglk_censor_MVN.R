@@ -21,7 +21,7 @@ library(truncnorm)
 loglk_censor_MVN <- function(locs, indCensor, y, bCensor,
                              covName = NULL, covParms = NULL, m = 30,
                              NLevel1 = 10, NLevel2 = 1e3,
-                             verbose = T) {
+                             verbose = TRUE) {
   # extract and separate observed and censored data --------------------------------
   n <- nrow(locs)
   n_obs <- n - length(indCensor)

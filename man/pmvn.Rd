@@ -17,8 +17,8 @@ pmvn(
   reorder = 0,
   NLevel1 = 12,
   NLevel2 = 10000,
-  verbose = F,
-  retlog = F,
+  verbose = FALSE,
+  retlog = FALSE,
   ...
 )
 }

@@ -19,7 +19,7 @@ library(truncnorm)
 #' @export
 mvrandn <- function(lower, upper, mean, locs = NULL,
                     covName = "matern15_isotropic", covParms = c(1.0, 0.1, 0.0),
-                    m = 30, sigma = NULL, N = 1e3, verbose = F) {
+                    m = 30, sigma = NULL, N = 1e3, verbose = FALSE) {
   ## standardize the input MVN prob -----------------------------
   lower <- lower - mean
   upper <- upper - mean

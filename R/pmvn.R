@@ -26,7 +26,7 @@ library(truncnorm)
 #' @export
 pmvn <- function(lower, upper, mean, locs = NULL, covName = "matern15_isotropic",
                  covParms = c(1.0, 0.1, 0.0), m = 30, sigma = NULL, reorder = 0,
-                 NLevel1 = 12, NLevel2 = 1e4, verbose = F, retlog = F, ...) {
+                 NLevel1 = 12, NLevel2 = 1e4, verbose = FALSE, retlog = FALSE, ...) {
   # standardize the input MVN prob -----------------------------
   lower <- lower - mean
   upper <- upper - mean

@@ -14,8 +14,8 @@ ptmvrandn(
   covParms = NULL,
   m = 30,
   N = 1000,
-  verbose = T,
-  reorder = T
+  verbose = TRUE,
+  reorder = TRUE
 )
 }
 \arguments{

@@ -2,10 +2,10 @@ Package: VeccTMVN
 Type: Package
 Title: Multivariate Normal Probabilities using Vecchia Approximation
 Version: 1.0.0
-Date: 2023-12-26
-Author: Jian Cao, Matthias Katzfuss
+Date: 2024-01-11
+Authors@R: c(person("Jian Cao", role = c("aut", "cre"), email = "jcao2416@gmail.com"), person("Matthias Katzfuss", role = "aut"))
 Maintainer: Jian Cao <jcao2416@gmail.com>
-Description: Under a different representation of the multivariate normal (MVN) probability, we can use the Vecchia approximation to sample the integrand at a linear complexity with respect to n. Additionally, both the SOV algorithm from Genz (92) and the exponential-tilting method from Botev (2017) can be adapted to linear complexity. Reference: Cao, Jian, and Matthias Katzfuss. "Linear-Cost Vecchia Approximation of Multivariate Normal Probabilities." arXiv preprint arXiv:2311.09426 (2023).
+Description: Under a different representation of the multivariate normal (MVN) probability, we can use the Vecchia approximation to sample the integrand at a linear complexity with respect to n. Additionally, both the SOV algorithm from Genz (92) and the exponential-tilting method from Botev (2017) can be adapted to linear complexity. Reference: Jian Cao and Matthias Katzfuss (2024) "Linear-Cost Vecchia Approximation of Multivariate Normal Probabilities" <arXiv:2311.09426>, Alan Genz (1992) "Numerical Computation of Multivariate Normal Probabilities" <doi:10.1080/10618600.1992.10477010>, Z. I. Botev (2017) "The Normal Law Under Linear Restrictions: Simulation and Estimation via Minimax Tilting" <arXiv:1603.04166>
 License: GPL (>= 2)
 Imports: Rcpp (>= 1.0.10), Matrix (>= 1.5-3), GpGp (>= 0.4.0), truncnorm (>= 1.0-8), GPvecchia, TruncatedNormal
 Suggests: testthat (>= 3.0.0), lhs, mvtnorm
