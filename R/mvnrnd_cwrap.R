@@ -13,15 +13,15 @@ mvnrnd_wrap <- function(a, b, mu, NN, veccObj, N, verbose = 0) {
     x0,
     fn = function(x, ...) {
       ret <- grad_jacprod_jacsolv_idea5(x, ...,
-        retJac = F,
-        retProd = F, retSolv = F
+        retJac = FALSE,
+        retProd = FALSE, retSolv = FALSE
       )
       0.5 * sum((ret$grad)^2)
     },
     gr = function(x, ...) {
       ret <- grad_jacprod_jacsolv_idea5(x, ...,
-        retJac = F,
-        retProd = T, retSolv = F
+        retJac = FALSE,
+        retProd = TRUE, retSolv = FALSE
       )
       ret$jac_grad
     },
@@ -93,7 +93,7 @@ mvnrnd_wrap <- function(a, b, mu, NN, veccObj, N, verbose = 0) {
     }
     if (m > 0) {
       X[, (accept + 1):(accept + m)] <-
-        t(call$X_trans[idx, , drop = F]) # accumulate accepted
+        t(call$X_trans[idx, , drop = FALSE]) # accumulate accepted
     }
     accept <- accept + m # keep track of # of accepted
     iter <- iter + 1L # keep track of while loop iterations
@@ -145,7 +145,7 @@ mvnrnd_wrap <- function(a, b, mu, NN, veccObj, N, verbose = 0) {
 # )$order
 # a_vecc_ord <- a[ord]
 # b_vecc_ord <- b[ord]
-# locs_vecc_ord <- locs[ord, , drop = F]
+# locs_vecc_ord <- locs[ord, , drop = FALSE]
 # NN <- GpGp::find_ordered_nn(locs_vecc_ord, m)
 # vecc_obj <- vecc_cond_mean_var_sp(NN,
 #                                   locs = locs_vecc_ord, covName = cov_name,
@@ -158,7 +158,7 @@ mvnrnd_wrap <- function(a, b, mu, NN, veccObj, N, verbose = 0) {
 # )
 # ord_rev <- integer(n)
 # ord_rev[ord] <- 1 : n
-# samp_Vecc <- samp_Vecc_ord[ord_rev, , drop = F]
+# samp_Vecc <- samp_Vecc_ord[ord_rev, , drop = FALSE]
 # ## Visual comparison of two TMVN samples -------------------------------
 # par(mfrow = c(1, 2))
 # hist(samp_Vecc)

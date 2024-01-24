@@ -59,8 +59,8 @@ HInv22_mul <- function(veccCondMeanVarObj, dPsi, D, V, S, x) {
 # consideration. Meanwhile, based on Idea 5, it is obvious that beta_n = 0
 # and we don't need to know the value of x_n anyways
 grad_jacprod_jacsolv_idea5 <- function(xAndBeta, veccCondMeanVarObj, a, b,
-                                       retJac = F, retProd = T, retSolv = T,
-                                       VAdj = T, verbose = T, mu = rep(0, length(a))) {
+                                       retJac = FALSE, retProd = TRUE, retSolv = TRUE,
+                                       VAdj = TRUE, verbose = TRUE, mu = rep(0, length(a))) {
   n <- length(a)
   x <- xAndBeta[1:n]
   beta <- xAndBeta[(n + 1):(2 * n)]
@@ -104,7 +104,7 @@ grad_jacprod_jacsolv_idea5 <- function(xAndBeta, veccCondMeanVarObj, a, b,
   # compute Hessian^{-1} \cdot grad -------------------------------------------
   if (retSolv) {
     # compute V -------------------------------------------
-    ichol_succ <- T
+    ichol_succ <- TRUE
     # L = D^{-1} A, lower tri
     L <- veccCondMeanVarObj$A / D
     # First entry of each col in L should be diag entry
@@ -123,7 +123,7 @@ grad_jacprod_jacsolv_idea5 <- function(xAndBeta, veccCondMeanVarObj, a, b,
     P_vals[P_diag_ind] <- P_vals[P_diag_ind] + (1 / (1 + dPsi) - 1) / (D^2)
     P <- Matrix::sparseMatrix(
       i = P_row_ind, j = P_col_ind, x = P_vals, dims = c(n, n),
-      symmetric = T
+      symmetric = TRUE
     )
     # call ic0 from GPVecchia, this changes P matrix!
     V <- GPvecchia::ichol(P)
@@ -137,7 +137,7 @@ grad_jacprod_jacsolv_idea5 <- function(xAndBeta, veccCondMeanVarObj, a, b,
       if (verbose) {
         cat("ichol failed, using diagonal adjustment on L instead\n")
       }
-      ichol_succ <- F
+      ichol_succ <- FALSE
     }
     if (!ichol_succ) {
       # increase the absolute values of the diag coeffs of L and use it as V s.t.
@@ -150,7 +150,7 @@ grad_jacprod_jacsolv_idea5 <- function(xAndBeta, veccCondMeanVarObj, a, b,
         sqrt(V_vals[L_diag_ind]^2 + (1 / (1 + dPsi) - 1) / (D^2))
       V <- Matrix::sparseMatrix(
         i = L_row_ind, j = L_col_ind, x = V_vals, dims = c(n, n),
-        triangular = T
+        triangular = TRUE
       )
       if (!(Matrix::isTriangular(V) &&
         attr(Matrix::isTriangular(V), "kind") == "L")) {
@@ -308,7 +308,7 @@ dpsi_dx <- function(x, beta, veccCondMeanVarObj, NN, a, b, mu) {
 #   jac_ds <- jac_idea5(x0_demean, vecc_cond_mean_var_obj, a_ord_demean, b_ord_demean)
 #   solve_obj <- grad_jacprod_jacsolv_idea5(x0_padded, vecc_cond_mean_var_obj,
 #                                           a_ord, b_ord,
-#                                           retJac = T, mu = mu_ord
+#                                           retJac = TRUE, mu = mu_ord
 #   )
 #   cat("grad error: ", sum(abs(grad_ds - solve_obj$grad[-c(n, 2 * n)])), "\n")
 #   cat(

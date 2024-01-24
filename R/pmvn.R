@@ -32,14 +32,14 @@ pmvn <- function(lower, upper, mean, locs = NULL, covName = "matern15_isotropic"
   upper <- upper - mean
   if (is.null(sigma)) {
     n <- nrow(locs)
-    use_sigma <- F
+    use_sigma <- FALSE
     margin_sd <- sqrt(covParms[1])
     upper <- upper / margin_sd
     lower <- lower / margin_sd
     covParms[1] <- 1
   } else {
     n <- nrow(sigma)
-    use_sigma <- T
+    use_sigma <- TRUE
     margin_sd <- sqrt(diag(sigma))
     upper <- upper / margin_sd
     lower <- lower / margin_sd
@@ -72,9 +72,9 @@ pmvn <- function(lower, upper, mean, locs = NULL, covName = "matern15_isotropic"
     lower <- lower[ord]
     upper <- upper[ord]
     if (use_sigma) {
-      sigma <- sigma[ord, ord, drop = F]
+      sigma <- sigma[ord, ord, drop = FALSE]
     } else {
-      locs <- locs[ord, , drop = F]
+      locs <- locs[ord, , drop = FALSE]
     }
   } else if (reorder == 2) {
     if (use_sigma) {
@@ -87,9 +87,9 @@ pmvn <- function(lower, upper, mean, locs = NULL, covName = "matern15_isotropic"
     lower <- lower[ord]
     upper <- upper[ord]
     if (use_sigma) {
-      sigma <- sigma[ord, ord, drop = F]
+      sigma <- sigma[ord, ord, drop = FALSE]
     } else {
-      locs <- locs[ord, , drop = F]
+      locs <- locs[ord, , drop = FALSE]
     }
   }
   # find nearest neighbors for Vecchia --------------------------------
@@ -126,15 +126,15 @@ pmvn <- function(lower, upper, mean, locs = NULL, covName = "matern15_isotropic"
     x0,
     fn = function(x, ...) {
       ret <- grad_jacprod_jacsolv_idea5(x, ...,
-        retJac = F,
-        retProd = F, retSolv = F
+        retJac = FALSE,
+        retProd = FALSE, retSolv = FALSE
       )
       0.5 * sum((ret$grad)^2)
     },
     gr = function(x, ...) {
       ret <- grad_jacprod_jacsolv_idea5(x, ...,
-        retJac = F,
-        retProd = T, retSolv = F
+        retJac = FALSE,
+        retProd = TRUE, retSolv = FALSE
       )
       ret$jac_grad
     },
@@ -204,7 +204,7 @@ pmvn <- function(lower, upper, mean, locs = NULL, covName = "matern15_isotropic"
 #   ### Compute MVN prob with idea V -----------------------
 #   time_Vecc <- system.time(est_Vecc <- VeccTMVN::pmvn(a, b, 0, locs,
 #                                                       covName = "matern15_isotropic",
-#                                                       covParms = covparms, m = m, verbose = F
+#                                                       covParms = covparms, m = m, verbose = FALSE
 #   ))[[3]]
 #   ### Compute MVN prob with other methods -----------------------
 #   time_TN <- system.time(est_TN <- TruncatedNormal::pmvnorm(

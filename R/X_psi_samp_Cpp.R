@@ -56,8 +56,8 @@ sample_psi_idea5_cpp <- function(veccCondMeanVarObj, a, b,
 #   ### ordering based on integration limits --------------------------------
 #   pnorm_at_a <- pnorm(a_list[[i]], sd = sqrt(covparms[1]))
 #   pnorm_at_b <- pnorm(b_list[[i]], sd = sqrt(covparms[1]))
-#   ord <- order(pnorm_at_b - pnorm_at_a, decreasing = F)
-#   locs_ord <- locs[ord, , drop = F]
+#   ord <- order(pnorm_at_b - pnorm_at_a, decreasing = FALSE)
+#   locs_ord <- locs[ord, , drop = FALSE]
 #   cov_mat_ord <- matern15_isotropic(covparms, locs_ord)
 #   a_ord <- a_list[[i]][ord]
 #   b_ord <- b_list[[i]][ord]

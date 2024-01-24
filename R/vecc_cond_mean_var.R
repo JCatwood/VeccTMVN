@@ -42,15 +42,15 @@ vecc_cond_mean_var_sp <- function(NNarray, covMat = NULL, locs = NULL,
   cond_mean_coeff <- matrix(0, n, m)
   cond_var <- rep(NA, n)
   if (is.null(locs)) {
-    use_locs <- F
+    use_locs <- FALSE
     cov_func <- function(ind) {
-      covMat[ind, ind, drop = F]
+      covMat[ind, ind, drop = FALSE]
     }
   } else {
-    use_locs <- T
+    use_locs <- TRUE
     cov_func_GpGp <- utils:: getFromNamespace(covName, "GpGp")
     cov_func <- function(ind) {
-      cov_func_GpGp(covParms, locs[ind, , drop = F])
+      cov_func_GpGp(covParms, locs[ind, , drop = FALSE])
     }
   }
   cond_var[1] <- cov_func(1)[1, 1]

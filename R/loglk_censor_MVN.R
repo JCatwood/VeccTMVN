@@ -30,8 +30,8 @@ loglk_censor_MVN <- function(locs, indCensor, y, bCensor,
     stop("loglk_censor_MVN should be called with
          non-empty censor/observed data")
   }
-  locs_obs <- locs[-indCensor, , drop = F]
-  locs_censor <- locs[indCensor, , drop = F]
+  locs_obs <- locs[-indCensor, , drop = FALSE]
+  locs_censor <- locs[indCensor, , drop = FALSE]
   y_obs <- y[-indCensor]
   if (length(bCensor) > 1) {
     b_censor <- bCensor[indCensor]
@@ -47,7 +47,7 @@ loglk_censor_MVN <- function(locs, indCensor, y, bCensor,
   #   warning("FIC_reorder_univar failed\n")
   # }else{
   #   odr_censor <- odr[(n_obs + 1) : n] - n_obs
-  #   locs_censor <- locs_censor[odr_censor, , drop = F]
+  #   locs_censor <- locs_censor[odr_censor, , drop = FALSE]
   #   b_censor <- b_censor[odr_censor]
   #   locs <- rbind(locs_obs, locs_censor)
   # }
@@ -60,7 +60,7 @@ loglk_censor_MVN <- function(locs, indCensor, y, bCensor,
   # log pdf for observed data --------------------------------
   loglik_pdf <- GpGp::vecchia_meanzero_loglik(
     covParms, covName, y_obs,
-    locs_obs, NN[1:n_obs, , drop = F]
+    locs_obs, NN[1:n_obs, , drop = FALSE]
   )$loglik
   # vecc approx object for censored data --------------------------------
   y_obs_padded <- c(y_obs, rep(0, n_censor))
@@ -68,13 +68,13 @@ loglk_censor_MVN <- function(locs, indCensor, y, bCensor,
   a <- rep(-Inf, n_censor)
   b <- b_censor
   cond_var <- vecc_obj$cond_var[(n_obs + 1):n]
-  NN <- NN[(n_obs + 1):n, , drop = F] - n_obs
+  NN <- NN[(n_obs + 1):n, , drop = FALSE] - n_obs
   NN_mask <- NN <= 0
-  NN_mask[is.na(NN_mask)] <- F
-  cond_mean_coeff <- vecc_obj$cond_mean_coeff[(n_obs + 1):n, , drop = F]
-  cond_mean_coeff[NN_mask[, -1, drop = F]] <- 0
+  NN_mask[is.na(NN_mask)] <- FALSE
+  cond_mean_coeff <- vecc_obj$cond_mean_coeff[(n_obs + 1):n, , drop = FALSE]
+  cond_mean_coeff[NN_mask[, -1, drop = FALSE]] <- 0
   NN[NN_mask] <- 1
-  A <- vecc_obj$A[(n_obs + 1):n, (n_obs + 1):n, drop = F]
+  A <- vecc_obj$A[(n_obs + 1):n, (n_obs + 1):n, drop = FALSE]
   vecc_obj_censor <- list(
     cond_mean_coeff = cond_mean_coeff, cond_var = cond_var,
     nn = NN, A = A
@@ -86,15 +86,15 @@ loglk_censor_MVN <- function(locs, indCensor, y, bCensor,
     x0,
     fn = function(x, ...) {
       ret <- grad_jacprod_jacsolv_idea5(x, ...,
-        retJac = F,
-        retProd = F, retSolv = F
+        retJac = FALSE,
+        retProd = FALSE, retSolv = FALSE
       )
       0.5 * sum((ret$grad)^2)
     },
     gr = function(x, ...) {
       ret <- grad_jacprod_jacsolv_idea5(x, ...,
-        retJac = F,
-        retProd = T, retSolv = F
+        retJac = FALSE,
+        retProd = TRUE, retSolv = FALSE
       )
       ret$jac_grad
     },

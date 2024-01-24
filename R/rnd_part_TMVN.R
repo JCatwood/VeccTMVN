@@ -34,8 +34,8 @@ ptmvrandn <- function(locs, indCensor, y, bCensor,
     stop("loglk_censor_MVN should be called with
          non-empty censor/observed data")
   }
-  locs_obs <- locs[-indCensor, , drop = F]
-  locs_censor <- locs[indCensor, , drop = F]
+  locs_obs <- locs[-indCensor, , drop = FALSE]
+  locs_censor <- locs[indCensor, , drop = FALSE]
   y_obs <- y[-indCensor]
   if (length(bCensor) > 1) {
     b_censor <- bCensor[indCensor]
@@ -58,7 +58,7 @@ ptmvrandn <- function(locs, indCensor, y, bCensor,
     warning("Vecc_reorder failed\n")
   } else {
     odr_censor <- ord[(n_obs + 1):n] - n_obs
-    locs_censor <- locs_censor[odr_censor, , drop = F]
+    locs_censor <- locs_censor[odr_censor, , drop = FALSE]
     b_censor <- b_censor[odr_censor]
     locs <- rbind(locs_obs, locs_censor)
   }
@@ -77,13 +77,13 @@ ptmvrandn <- function(locs, indCensor, y, bCensor,
     stop("b_censor is too small (smaller than 10 std) \n")
   }
   cond_var <- vecc_obj$cond_var[(n_obs + 1):n]
-  NN <- NN[(n_obs + 1):n, , drop = F] - n_obs
+  NN <- NN[(n_obs + 1):n, , drop = FALSE] - n_obs
   NN_mask <- NN <= 0
-  NN_mask[is.na(NN_mask)] <- F
-  cond_mean_coeff <- vecc_obj$cond_mean_coeff[(n_obs + 1):n, , drop = F]
-  cond_mean_coeff[NN_mask[, -1, drop = F]] <- 0
+  NN_mask[is.na(NN_mask)] <- FALSE
+  cond_mean_coeff <- vecc_obj$cond_mean_coeff[(n_obs + 1):n, , drop = FALSE]
+  cond_mean_coeff[NN_mask[, -1, drop = FALSE]] <- 0
   NN[NN_mask] <- 1
-  A <- vecc_obj$A[(n_obs + 1):n, (n_obs + 1):n, drop = F]
+  A <- vecc_obj$A[(n_obs + 1):n, (n_obs + 1):n, drop = FALSE]
   vecc_obj_censor <- list(
     cond_mean_coeff = cond_mean_coeff, cond_var = cond_var,
     nn = NN, A = A

@@ -25,14 +25,14 @@ mvrandn <- function(lower, upper, mean, locs = NULL,
   upper <- upper - mean
   if (is.null(sigma)) {
     n <- nrow(locs)
-    use_sigma <- F
+    use_sigma <- FALSE
     margin_sd <- sqrt(covParms[1])
     upper <- upper / margin_sd
     lower <- lower / margin_sd
     covParms[1] <- 1
   } else {
     n <- nrow(sigma)
-    use_sigma <- T
+    use_sigma <- TRUE
     margin_sd <- sqrt(diag(sigma))
     upper <- upper / margin_sd
     lower <- lower / margin_sd
@@ -70,9 +70,9 @@ mvrandn <- function(lower, upper, mean, locs = NULL,
   lower <- lower[ord]
   upper <- upper[ord]
   if (use_sigma) {
-    sigma <- sigma[ord, ord, drop = F]
+    sigma <- sigma[ord, ord, drop = FALSE]
   } else {
-    locs <- locs[ord, , drop = F]
+    locs <- locs[ord, , drop = FALSE]
   }
   ## find nearest neighbors for Vecchia --------------------------------
   if (use_sigma) {
@@ -136,7 +136,7 @@ mvrandn <- function(lower, upper, mean, locs = NULL,
 # )
 # samp_Vecc <- mvrandn(
 #   a, b, mu, locs, "matern15_isotropic", covparms,
-#   m = 30, N = N, verbose = T
+#   m = 30, N = N, verbose = TRUE
 # )
 # ##  histogram for verification -------------------
 # par(mfrow = c(1, 2))

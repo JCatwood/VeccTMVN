@@ -46,23 +46,23 @@ FIC_reorder_maxmin <- function(a, b, m, locs = NULL, covName = NULL,
   }
   ## maxmin order --------------------------
   if (!is.null(covMat)) {
-    odr_maxmin <- sample(1:n, n, F)
+    odr_maxmin <- sample(1:n, n, FALSE)
   } else {
     odr_maxmin <- GpGp::order_maxmin(locs)
   }
   odr_FIC_univar <- odr_maxmin
   a <- a[odr_maxmin]
   b <- b[odr_maxmin]
-  locs <- locs[odr_maxmin, , drop = F]
+  locs <- locs[odr_maxmin, , drop = FALSE]
   ## cov func -------------------------------
   if (!is.null(covMat)) {
     cov_func <- function(ind) {
-      covMat[ind, ind, drop = F]
+      covMat[ind, ind, drop = FALSE]
     }
   } else {
     cov_func_GpGp <- utils::getFromNamespace(covName, "GpGp")
     cov_func <- function(ind) {
-      cov_func_GpGp(covParms, locs[ind, , drop = F])
+      cov_func_GpGp(covParms, locs[ind, , drop = FALSE])
     }
   }
   ## TMVN expectation ------------------------------
@@ -82,7 +82,7 @@ FIC_reorder_maxmin <- function(a, b, m, locs = NULL, covName = NULL,
     tmvn_prob_1D[i] <- stats::pnorm(b[i], mean = cond_mean, sd = cond_sd) -
       stats::pnorm(a[i], mean = cond_mean, sd = cond_sd)
   }
-  odr_maxmin[order(tmvn_prob_1D, decreasing = F)]
+  odr_maxmin[order(tmvn_prob_1D, decreasing = FALSE)]
 }
 
 
@@ -142,7 +142,7 @@ FIC_reorder_univar <- function(a, b, m, locs = NULL, covName = NULL,
     covMat <- cov_func_GpGp(covParms, locs)
   }
   cov_func <- function(indRow, indCol) {
-    covMat[indRow, indCol, drop = F]
+    covMat[indRow, indCol, drop = FALSE]
   }
   ## TMVN expectation ------------------------------
   x_first_m <- rep(0, m)
@@ -152,8 +152,8 @@ FIC_reorder_univar <- function(a, b, m, locs = NULL, covName = NULL,
   for (i in 1:m) {
     if (i > 1) {
       cov_mat_rows <- cov_func(odr[1:(i - 1)], odr)
-      cov_mat_sub <- cov_mat_rows[, 1:(i - 1), drop = F]
-      cov_mat_rows_sub <- cov_mat_rows[, i:n, drop = F]
+      cov_mat_sub <- cov_mat_rows[, 1:(i - 1), drop = FALSE]
+      cov_mat_rows_sub <- cov_mat_rows[, i:n, drop = FALSE]
       cov_mat_sub_inv <- solve(cov_mat_sub)
       mu_cond <- as.numeric(t(cov_mat_rows_sub) %*%
         (cov_mat_sub_inv %*% x_first_m[1:(i - 1)]))

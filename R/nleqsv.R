@@ -20,7 +20,7 @@
 #   matrix(c(
 #     2 * x[1], 2 * x[2],
 #     exp(x[1] - 1), 3 * x[2]^2
-#   ), 2, 2, byrow = T)
+#   ), 2, 2, byrow = TRUE)
 # }
 # obj_fn <- function(x) {
 #   0.5 * sum(Fn(x)^2)
@@ -54,7 +54,7 @@ line_search <- function(x, grad, objFn, NewtonStep, alpha = 1e-4,
     return(list(code = 3, x_new = x))
   }
   f <- objFn(x)
-  while (T) {
+  while (TRUE) {
     x_new <- x + lambda * NewtonStep
     f_new <- objFn(x_new)
     if (f_new <= f + alpha * lambda * init_slope) {
@@ -72,7 +72,7 @@ line_search <- function(x, grad, objFn, NewtonStep, alpha = 1e-4,
               -lambda_prev / (lambda^2), lambda / (lambda_prev^2)
             ),
             2, 2,
-            byrow = T
+            byrow = TRUE
           ) %*% c(
             f_new - f - lambda * init_slope,
             f_prev - f - lambda_prev * init_slope
@@ -106,8 +106,8 @@ line_search <- function(x, grad, objFn, NewtonStep, alpha = 1e-4,
 #
 # @param x0 initial guess
 # @param fn non-linear system, fn: $R^{n} -> R^{n}$
-# @param jacTransFn function that computes Jacobian^{T} cdot fn
-# @param jacInvFn function that computes Jacobian^{T} cdot fn
+# @param jacTransFn function that computes Jacobian^{top} cdot fn
+# @param jacInvFn function that computes Jacobian^{top} cdot fn
 # @param ... arguments to `fn`, `jacTransFn`, and `jacInvFn`
 # @param control a list of tuning parameters for optimization
 # @return a list of `code` and `x`
@@ -122,7 +122,7 @@ line_search <- function(x, grad, objFn, NewtonStep, alpha = 1e-4,
 #   matrix(c(
 #     2 * x[1], 2 * x[2],
 #     exp(x[1] - 1), 3 * x[2]^2
-#   ), 2, 2, byrow = T)
+#   ), 2, 2, byrow = TRUE)
 # }
 # jac_trans_fn <- function(x) {
 #   as.vector(t(J(x)) %*% Fn(x))
