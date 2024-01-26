@@ -15,5 +15,7 @@ Imports: Rcpp (>= 1.0.10), Matrix (>= 1.5-3), GpGp (>= 0.4.0), truncnorm (>= 1.0
 Suggests: testthat (>= 3.0.0), lhs, mvtnorm
 Config/testthat/edition: 3
 LinkingTo: Rcpp, RcppArmadillo
+URL: https://github.com/JCatwood/VeccTMVN
+BugReports: https://github.com/JCatwood/VeccTMVN/issues
 RoxygenNote: 7.2.3
 Encoding: UTF-8
