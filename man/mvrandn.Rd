@@ -2,8 +2,7 @@
 % Please edit documentation in R/rnd_TMVN.R
 \name{mvrandn}
 \alias{mvrandn}
-\title{Simulate censored multivariate normal (MVN) as censored locations using the
-  Vecchia approximation}
+\title{Simulate truncated multivariate normal (TMVN) using the Vecchia approximation}
 \usage{
 mvrandn(
   lower,
@@ -43,6 +42,5 @@ mvrandn(
 n X N matrix of generated samples
 }
 \description{
-Simulate censored multivariate normal (MVN) as censored locations using the
-  Vecchia approximation
+Simulate truncated multivariate normal (TMVN) using the Vecchia approximation
 }

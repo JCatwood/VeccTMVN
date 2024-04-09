@@ -2,8 +2,8 @@
 % Please edit documentation in R/rnd_part_TMVN.R
 \name{ptmvrandn}
 \alias{ptmvrandn}
-\title{Simulate censored multivariate normal (MVN) as censored locations using the
-  Vecchia approximation}
+\title{Simulate partially censored multivariate normal (MVN) at censored locations 
+  using the Vecchia approximation}
 \usage{
 ptmvrandn(
   locs,
@@ -44,6 +44,6 @@ can be different for different locations, of length 1 or n}
 n X N matrix of generated samples
 }
 \description{
-Simulate censored multivariate normal (MVN) as censored locations using the
-  Vecchia approximation
+Simulate partially censored multivariate normal (MVN) at censored locations 
+  using the Vecchia approximation
 }

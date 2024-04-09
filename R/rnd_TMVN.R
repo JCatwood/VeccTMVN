@@ -1,8 +1,7 @@
 library(GpGp)
 library(truncnorm)
 
-#' Simulate censored multivariate normal (MVN) as censored locations using the
-#'   Vecchia approximation
+#' Simulate truncated multivariate normal (TMVN) using the Vecchia approximation
 #'
 #' @param lower lower bound vector for TMVN
 #' @param upper upper bound vector for TMVN

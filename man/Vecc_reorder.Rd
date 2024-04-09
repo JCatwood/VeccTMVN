@@ -30,7 +30,7 @@ Vecc_reorder(
 \item{covMat}{dense covariance matrix, not needed when `locs` is not null}
 }
 \value{
-a vector of new order based on FIC assumption and maxmin ordering
+new order, nearest neighbor matrix, and coefficient matrix
 }
 \description{
 Univariate ordering under Vecchia approximation

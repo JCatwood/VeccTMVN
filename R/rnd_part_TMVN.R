@@ -1,8 +1,8 @@
 library(GpGp)
 library(truncnorm)
 
-#' Simulate censored multivariate normal (MVN) as censored locations using the
-#'   Vecchia approximation
+#' Simulate partially censored multivariate normal (MVN) at censored locations 
+#'   using the Vecchia approximation
 #'
 #' @param locs location (feature) matrix n X d
 #' @param indCensor indices of locations that have only censored observations

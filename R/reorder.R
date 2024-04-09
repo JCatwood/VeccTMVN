@@ -197,7 +197,7 @@ FIC_reorder_univar <- function(a, b, m, locs = NULL, covName = NULL,
 #' @param covName covariance function name from the `GpGp` package
 #' @param covParms parameters for `covName`
 #' @param covMat dense covariance matrix, not needed when `locs` is not null
-#' @return a vector of new order based on FIC assumption and maxmin ordering
+#' @return new order, nearest neighbor matrix, and coefficient matrix
 #'
 #' @examples
 #' library(lhs)

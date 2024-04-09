@@ -1,7 +1,7 @@
 Package: VeccTMVN
 Type: Package
 Title: Multivariate Normal Probabilities using Vecchia Approximation
-Version: 1.0.0
+Version: 1.0.1
 Date: 2024-01-16
 Authors@R: 
   c(person("Jian Cao", role = c("aut", "cre"), email = "jcao2416@gmail.com"), 
@@ -17,5 +17,5 @@ Config/testthat/edition: 3
 LinkingTo: Rcpp, RcppArmadillo
 URL: https://github.com/JCatwood/VeccTMVN
 BugReports: https://github.com/JCatwood/VeccTMVN/issues
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Encoding: UTF-8
