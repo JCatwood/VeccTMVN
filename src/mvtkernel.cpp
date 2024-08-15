@@ -8,51 +8,17 @@
 using namespace Rcpp;
 using namespace std;
 
+// Defined in mvnkernel.cpp
+void primes(int n, int sz, int *primeVec);
 
-void primes(int n, int sz, int *primeVec)
+double normalCDF(double x) // Phi(-∞, x) aka N(x)
 {
-    int idx = 0;
-    if(n > 2 && sz > 0)
-    {
-        primeVec[idx] = 2;
-        idx++;
-        if(idx == sz)
-            return;
-        for(int i = 3; i <= n; i++)
-        {
-            int sqroot = sqrt(i);
-            bool prime = true;
-            for(int j = 0; j < idx; j++)
-            {
-                if(primeVec[j] > sqroot)
-                    break;
-                if(i % primeVec[j] == 0)
-                {
-                    prime = false;
-                    break;
-                }
-            }
-            if(prime)
-            {
-                primeVec[idx] = i;
-                idx++;
-                if(idx == sz)
-                    return;
-            }
-        }
-    }
+    return std::erfc(-x / std::sqrt(2)) / 2;
 }
 
-
-
-/*
-    For 2d arrays, row number correspond to MVN dim and col number
-        correspond to MC sample.
-    Indexing is row-major for 2d arrays.
-*/
 // [[Rcpp::export]]
-List mvndns(
-    const NumericVector &a, const NumericVector &b,
+List mvtdns(
+    const NumericVector &a, const NumericVector &b, double nu,
     const IntegerMatrix &NN, const NumericVector &muCond,
     const NumericMatrix &muCoeff,
     const NumericVector &condSd, const NumericVector &beta,
@@ -62,13 +28,16 @@ List mvndns(
     int N = NLevel2 / 2;
     int m = NN.cols() - 1;
     NLevel2 = N * 2;
+    double eta = beta[n - 1];
+    double phi_at_neg_eta = normalCDF(-eta);
     NumericVector p_L1(NLevel1);
     NumericVector common_exponent(NLevel1);
     double * psi_L2 = new double[NLevel2];
-    double * MC_grid = new double[n * N];
-    double * MC_rnd = new double[n];
-    double * MC_samp = new double[n * NLevel2];
-    int * prime = new int[n];
+    double * MC_grid = new double[(n + 1) * N];
+    double * MC_rnd = new double[n + 1];
+    double * MC_samp = new double[(n + 1) * NLevel2];
+    double * r = new double[NLevel2];
+    int * prime = new int[n + 1];
     double * a_bat = new double[NLevel2];
     double * b_bat = new double[NLevel2];
     double * pnorm_at_a = new double[NLevel2];
@@ -79,6 +48,7 @@ List mvndns(
     double * mu = new double[NLevel2];
     double * lnNpr_sum = new double[NLevel2];
     double * inner_prod = new double[NLevel2];
+    double * log_lkratio_r = new double[NLevel2];
     int * cond_ind = new int[n * m];
 
     // copy nearest neighbors into cond_ind
@@ -89,13 +59,13 @@ List mvndns(
             else
                 cond_ind[i * m + j] = - 1;
 
-    // generate n prime numbers
-    primes(5*(n+1)*log((double)(n+1)+1)/4, n, prime);
+    // generate n+1 prime numbers
+    primes(5*(n+2)*log((double)(n+2)+1)/4, n + 1, prime);
 
     // MC_grid = sqrt(prime) * one2N
-    for(int i = 0; i < n; i++)
+    for(int i = 0; i < n + 1; i++)
         MC_grid[i * N] = sqrt((double) prime[i]);
-    for(int i = 0; i < n; i++)
+    for(int i = 0; i < n + 1; i++)
         for(int j = 1; j < N; j++)
             MC_grid[i * N + j] = MC_grid[i * N + j - 1] + MC_grid[i * N];
 
@@ -105,24 +75,35 @@ List mvndns(
         fill(inner_prod, inner_prod + NLevel2, 0.0);
         // generate MC_rnd from R RNG
         GetRNGstate();
-        for_each(MC_rnd, MC_rnd + n, [](double &x){x = unif_rand();});
+        for_each(MC_rnd, MC_rnd + n + 1, [](double &x){x = unif_rand();});
         PutRNGstate();
         // Fill in MC_samp
-        for(int i = 0; i < n; i++)
+        for(int i = 0; i < n + 1; i++)
             for(int j = 0; j < N; j++){
                 double tmp_val = MC_grid[i * N + j] + MC_rnd[i];
                 MC_samp[i * NLevel2 + j] =
                     abs(2.0 * (tmp_val - int(tmp_val)) - 1.0);
                 MC_samp[i * NLevel2 + N + j] = 1.0 - MC_samp[i * NLevel2 + j];
             }
-
+        // generate r that is used for scaling integration limits
+        transform(MC_samp + n * NLevel2, MC_samp + (n + 1) * NLevel2, cdf_MC_samp,
+            [&phi_at_neg_eta](double x){return phi_at_neg_eta + x * (1.0 - phi_at_neg_eta);});
+        lc_vdCdfNormInv(NLevel2, cdf_MC_samp, r);
+        for(int j = 0; j < NLevel2; j++){
+            r[j] += eta;
+            log_lkratio_r[j] = (nu - 1) * log(r[j]) - eta * r[j];
+            r[j] /= sqrt(nu);
+        }
         // Level 2 iteration
         for(int i = 0; i < n; i++){
-            // Copy a and b by NLevel2 times
-            fill(a_bat, a_bat + NLevel2, a[i]);
-            fill(b_bat, b_bat + NLevel2, b[i]);
+            // scale each a[i] and b[i]
+            // init mu
+            for(int j = 0; j < NLevel2; j++){
+                a_bat[j] = a[i] * r[j];
+                b_bat[j] = b[i] * r[j];
+                mu[j] = muCond[i] * r[j];
+            }
             // Compute mu
-            fill(mu, mu + NLevel2, muCond[i]);
             if(i > 0){
                 for(int j = 0; j < m; j++){
                     int cond_ind_j = cond_ind[i * m + j];
@@ -140,7 +121,7 @@ List mvndns(
             }
             // update a_bat and b_bat
             double cond_sd_i = condSd[i];
-            double beta_i = beta[i];
+            double beta_i = (i < n - 1) ? beta[i] : 0.0;
             for(int j = 0; j < NLevel2; j++){
                 a_bat[j] /= cond_sd_i;
                 b_bat[j] /= cond_sd_i;
@@ -167,10 +148,10 @@ List mvndns(
                 inner_prod[j] += (X_row_i[j] - mu[j]) * beta_i / cond_sd_i;
             }
         }
-        double beta_sq_norm = inner_product(beta.begin(), beta.end(),
-            beta.begin(), 0.0);
+        double beta_sq_norm = inner_product(beta.begin(), beta.end() - 1,
+            beta.begin(), 0.0);  // The last beta is eta, shouldn't be accumulated
         for(int j = 0; j < NLevel2; j++){
-            psi_L2[j] = - inner_prod[j] + lnNpr_sum[j] +
+            psi_L2[j] = - inner_prod[j] + lnNpr_sum[j] + log_lkratio_r[j] + 
                 0.5 * beta_sq_norm;
         }
         common_exponent[k] = *std::max_element(psi_L2, psi_L2 + NLevel2);
@@ -196,39 +177,36 @@ List mvndns(
     delete[] lnNpr_sum;
     delete[] inner_prod;
     delete[] cond_ind;
+    delete[] r;
+    delete[] log_lkratio_r;
 
     return List::create(p_L1, common_exponent);
 }
 
 
-/*
-    For 2d arrays, row number correspond to MVN dim and col number
-        correspond to MC sample.
-    Indexing is row-major for 2d arrays.
-    N is floored to the nearest even number.
-    Returns log(mvn_probs), in other words, mean(exp(psi_L2)) is 
-        the MVN prob estimate
-*/
 // [[Rcpp::export]]
-List mvnrnd(
-    const NumericVector &a, const NumericVector &b,
-    const IntegerMatrix &NN, const NumericVector &muCond,
-    const NumericMatrix &muCoeff,
+List mvtrnd(
+    const NumericVector &a, const NumericVector &b, double nu,
+    const IntegerMatrix &NN, const NumericMatrix &muCoeff,
     const NumericVector &condSd, const NumericVector &beta,
     int N)
 {
-    int n = a.size();  // MVN dim
+    int n = a.size();  // MVT dim
     int m = NN.cols() - 1;
     N = N / 2;
     // int NLevel1 = 1;
     int NLevel2 = N * 2;
+    double eta = beta[n - 1];
+    double phi_at_neg_eta = normalCDF(-eta);
     NumericVector psi_L2(NLevel2);
     NumericMatrix X_wrap(NLevel2, n); // NumericMatrix is col-orient
     double * X = X_wrap.begin(); 
-    double * MC_grid = new double[n * N];
-    double * MC_rnd = new double[n];
-    double * MC_samp = new double[n * NLevel2];
-    int * prime = new int[n];
+    double * MC_grid = new double[(n + 1) * N];
+    double * MC_rnd = new double[n + 1];
+    double * MC_samp = new double[(n + 1) * NLevel2];
+    NumericVector r_wrap(NLevel2);
+    double * r = r_wrap.begin();
+    int * prime = new int[n + 1];
     double * a_bat = new double[NLevel2];
     double * b_bat = new double[NLevel2];
     double * pnorm_at_a = new double[NLevel2];
@@ -238,6 +216,7 @@ List mvnrnd(
     double * mu = new double[NLevel2];
     double * lnNpr_sum = new double[NLevel2];
     double * inner_prod = new double[NLevel2];
+    double * log_lkratio_r = new double[NLevel2];
     int * cond_ind = new int[n * m];
 
     // copy nearest neighbors into cond_ind
@@ -248,39 +227,47 @@ List mvnrnd(
             else
                 cond_ind[i * m + j] = - 1;
 
-    // generate n prime numbers
-    primes(5*(n+1)*log((double)(n+1)+1)/4, n, prime);
+    // generate n+1 prime numbers
+    primes(5*(n+2)*log((double)(n+2)+1)/4, n + 1, prime);
 
     // MC_grid = sqrt(prime) * one2N
-    for(int i = 0; i < n; i++)
+    for(int i = 0; i < n + 1; i++)
         MC_grid[i * N] = sqrt((double) prime[i]);
-    for(int i = 0; i < n; i++)
+    for(int i = 0; i < n + 1; i++)
         for(int j = 1; j < N; j++)
             MC_grid[i * N + j] = MC_grid[i * N + j - 1] + MC_grid[i * N];
-
     // initialize
     fill(lnNpr_sum, lnNpr_sum + NLevel2, 0.0);
     fill(inner_prod, inner_prod + NLevel2, 0.0);
     // generate MC_rnd from R RNG
     GetRNGstate();
-    for_each(MC_rnd, MC_rnd + n, [](double &x){x = unif_rand();});
+    for_each(MC_rnd, MC_rnd + n + 1, [](double &x){x = unif_rand();});
     PutRNGstate();
     // Fill in MC_samp
-    for(int i = 0; i < n; i++)
+    for(int i = 0; i < n + 1; i++)
         for(int j = 0; j < N; j++){
             double tmp_val = MC_grid[i * N + j] + MC_rnd[i];
             MC_samp[i * NLevel2 + j] =
                 abs(2.0 * (tmp_val - int(tmp_val)) - 1.0);
             MC_samp[i * NLevel2 + N + j] = 1.0 - MC_samp[i * NLevel2 + j];
         }
-
+    // generate r that is used for scaling integration limits
+    transform(MC_samp + n * NLevel2, MC_samp + (n + 1) * NLevel2, cdf_MC_samp,
+        [&phi_at_neg_eta](double x){return phi_at_neg_eta + x * (1.0 - phi_at_neg_eta);});
+    lc_vdCdfNormInv(NLevel2, cdf_MC_samp, r);
+    for(int j = 0; j < NLevel2; j++){
+        r[j] += eta;
+        log_lkratio_r[j] = (nu - 1) * log(r[j]) - eta * r[j];
+    }
     // Level 2 iteration
     for(int i = 0; i < n; i++){
-        // Copy a and b by NLevel2 times
-        fill(a_bat, a_bat + NLevel2, a[i]);
-        fill(b_bat, b_bat + NLevel2, b[i]);
+        // scale each a[i] and b[i]
+        for(int j = 0; j < NLevel2; j++){
+            a_bat[j] = a[i] * r[j] / sqrt(nu);
+            b_bat[j] = b[i] * r[j] / sqrt(nu);
+        }
         // Compute mu
-        fill(mu, mu + NLevel2, muCond[i]);
+        fill(mu, mu + NLevel2, 0.0);
         if(i > 0){
             for(int j = 0; j < m; j++){
                 int cond_ind_j = cond_ind[i * m + j];
@@ -326,9 +313,9 @@ List mvnrnd(
         }
     }
     double beta_sq_norm = inner_product(beta.begin(), beta.end() - 1,
-        beta.begin(), 0.0);
+        beta.begin(), 0.0);  // The last beta is eta, shouldn't be accumulated
     for(int j = 0; j < NLevel2; j++){
-        psi_L2[j] = - inner_prod[j] + lnNpr_sum[j] +
+        psi_L2[j] = - inner_prod[j] + lnNpr_sum[j] + log_lkratio_r[j] + 
             0.5 * beta_sq_norm;
     }
 
@@ -346,73 +333,8 @@ List mvnrnd(
     delete[] lnNpr_sum;
     delete[] inner_prod;
     delete[] cond_ind;
+    delete[] log_lkratio_r;
 
     return List::create(Rcpp::Named("logpr") = psi_L2, 
-        Rcpp::Named("X_trans") = X_wrap);
-}
-
-
-// [[Rcpp::export]]
-double psi(
-    const NumericVector &a, const NumericVector &b,
-    const IntegerMatrix &NN, const NumericVector &muCond,
-    const NumericMatrix &muCoeff,
-    const NumericVector &condSd, const NumericVector &beta,
-    const NumericVector &x)
-{
-    int n = a.size();  // MVN dim
-    int m = NN.cols() - 1;
-    int * cond_ind = new int[n * m];
-    // copy nearest neighbors into cond_ind
-    for(int i = 0; i < n; i++)
-        for(int j = 0; j < m; j++)
-            if(j < i)
-                cond_ind[i * m + j] = NN(i, j + 1) - 1;
-            else
-                cond_ind[i * m + j] = - 1;
-    // initialize
-    double lnNpr_sum = 0;
-    double inner_prod = 0;
-    // compute psi
-    for(int i = 0; i < n; i++){
-        // Copy a and b by NLevel2 times
-        double a_hat = a[i];
-        double b_hat = b[i];
-        // Compute mu
-        double mu = muCond[i];
-        if(i > 0){
-            for(int j = 0; j < m; j++){
-                int cond_ind_j = cond_ind[i * m + j];
-                if(cond_ind_j >= 0){
-                    double mu_coeff_j = muCoeff(i, j);
-                    mu += mu_coeff_j * x[cond_ind_j];
-                }
-            }
-        }
-        a_hat -= mu;
-        b_hat -= mu;
-        // update a_bat and b_bat
-        double cond_sd_i = condSd[i];
-        double beta_i = (i < n - 1) ? beta[i] : 0.0;
-        a_hat /= cond_sd_i;
-        b_hat /= cond_sd_i;
-        a_hat -= beta_i;
-        b_hat -= beta_i;
-        // compute 1d normal cdf
-        double pnorm_at_a;
-        double pnorm_at_b;
-        lc_vdCdfNorm(1, &a_hat, &pnorm_at_a);
-        lc_vdCdfNorm(1, &b_hat, &pnorm_at_b);
-        double pnorm_diff = pnorm_at_b - pnorm_at_a;
-        // compute i-th summand of psi
-        lnNpr_sum += log(pnorm_diff);
-        inner_prod += (x[i] - mu) * beta_i / cond_sd_i;
-    }
-    double beta_sq_norm = inner_product(beta.begin(), beta.end() - 1,
-        beta.begin(), 0.0);
-    double psi = - inner_prod + lnNpr_sum + 0.5 * beta_sq_norm;
-
-    delete[] cond_ind;
-
-    return psi;
+        Rcpp::Named("X_trans") = X_wrap, Rcpp::Named("r") = r_wrap);
 }

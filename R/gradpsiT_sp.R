@@ -1,8 +1,7 @@
 #' Gradient of the psiT function computed using sparse A. For this function,
 #' \code{xAndBeta} should be a vector of length 2 * n, representing x_n and
 #' beta_n
-gradpsiT_idea5 <- function(xAndBeta, veccCondMeanVarObj, a, b, nu,
-                           mu = rep(0, length(a))) {
+gradpsiT_idea5 <- function(xAndBeta, veccCondMeanVarObj, a, b, nu) {
   n <- length(a)
   x <- beta <- co <- rep(0, n)
   x[-n] <- xAndBeta[1:(n - 1)]
@@ -13,7 +12,7 @@ gradpsiT_idea5 <- function(xAndBeta, veccCondMeanVarObj, a, b, nu,
   b <- b / sqrt(nu)
 
   D <- sqrt(veccCondMeanVarObj$cond_var)
-  mu_c <- as.vector(veccCondMeanVarObj$A %*% (x - mu)) + mu
+  mu_c <- as.vector(veccCondMeanVarObj$A %*% (x))
   a_tilde_shift <- (a * r - mu_c) / D - beta
   b_tilde_shift <- (b * r - mu_c) / D - beta
   log_diff_cdf <- TruncatedNormal::lnNpr(a_tilde_shift, b_tilde_shift)
@@ -29,12 +28,11 @@ gradpsiT_idea5 <- function(xAndBeta, veccCondMeanVarObj, a, b, nu,
   dpsi_dr <- (nu - 1) / r - eta + sum(b * pu - a * pl)
   dpsi_de <- eta - r + exp(dnorm(eta, log = TRUE) - lnNpr(-eta, Inf))
 
-  c(dpsi_dx, dpsi_dr, dpsi_dbeta, dpsi_de)
+  c(dpsi_dx[-n], dpsi_dr, dpsi_dbeta[-n], dpsi_de)
 }
 
 #' psiT function that wraps the C function \code{psi}
-psiT_wrapper <- function(x, beta, nu, veccCondMeanVarObj, NN, a, b,
-                         mu) {
+psiT_wrapper <- function(x, beta, nu, veccCondMeanVarObj, NN, a, b) {
   n <- length(a)
   r <- x[n] # note that this is after exponential
   eta <- beta[n]
@@ -44,7 +42,7 @@ psiT_wrapper <- function(x, beta, nu, veccCondMeanVarObj, NN, a, b,
   b <- b / sqrt(nu) * r
 
   psi(
-    a, b, NN, mu, veccCondMeanVarObj$cond_mean_coeff,
+    a, b, NN, rep(0, length(n)), veccCondMeanVarObj$cond_mean_coeff,
     sqrt(veccCondMeanVarObj$cond_var), beta, x
   ) + log(2 * pi) / 2 - lgamma(nu / 2) - (0.5 * nu - 1) * log(2) +
     0.5 * sum(eta * eta) - r * eta + (nu - 1) * log(r) +

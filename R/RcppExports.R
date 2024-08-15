@@ -17,6 +17,14 @@ psi <- function(a, b, NN, muCond, muCoeff, condSd, beta, x) {
     .Call('_VeccTMVN_psi', PACKAGE = 'VeccTMVN', a, b, NN, muCond, muCoeff, condSd, beta, x)
 }
 
+mvtdns <- function(a, b, nu, NN, muCond, muCoeff, condSd, beta, NLevel1, NLevel2) {
+    .Call('_VeccTMVN_mvtdns', PACKAGE = 'VeccTMVN', a, b, nu, NN, muCond, muCoeff, condSd, beta, NLevel1, NLevel2)
+}
+
+mvtrnd <- function(a, b, nu, NN, muCoeff, condSd, beta, N) {
+    .Call('_VeccTMVN_mvtrnd', PACKAGE = 'VeccTMVN', a, b, nu, NN, muCoeff, condSd, beta, N)
+}
+
 sp_mat_mul_query <- function(queryRow, queryCol, idx, cidx, val) {
     .Call('_VeccTMVN_sp_mat_mul_query', PACKAGE = 'VeccTMVN', queryRow, queryCol, idx, cidx, val)
 }

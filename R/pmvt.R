@@ -5,8 +5,8 @@
 #'
 #' @param lower lower bound vector for TMVT
 #' @param upper upper bound vector for TMVT
-#' @param mean MVT mean
-#' @param nu degrees of freedom
+#' @param delta MVT shifting parameter
+#' @param df degrees of freedom
 #' @param locs location (feature) matrix n X d
 #' @param covName covariance function name from the `GpGp` package
 #' @param covParms parameters for `covName`
@@ -24,12 +24,12 @@
 #' @return estimated MVT probability and estimation error
 #'
 #' @export
-pmvt <- function(lower, upper, mean, nu, locs = NULL, covName = "matern15_isotropic",
+pmvt <- function(lower, upper, delta, df, locs = NULL, covName = "matern15_isotropic",
                  covParms = c(1.0, 0.1, 0.0), m = 30, sigma = NULL, reorder = 0,
                  NLevel1 = 12, NLevel2 = 1e4, verbose = FALSE, retlog = FALSE, ...) {
   # standardize the input MVN prob -----------------------------
-  lower <- lower - mean
-  upper <- upper - mean
+  lower <- lower - delta
+  upper <- upper - delta
   if (is.null(sigma)) {
     n <- nrow(locs)
     use_sigma <- FALSE
@@ -122,11 +122,11 @@ pmvt <- function(lower, upper, mean, nu, locs = NULL, covName = "matern15_isotro
   # find tilting parameter beta -----------------------------------
   trunc_expect <- truncnorm::etruncnorm(lower, upper)
   x0 <- c(trunc_expect, rep(0, n))
-  x0[2 * n] <- sqrt(nu)
+  x0[2 * n] <- sqrt(df)
   x0[n] <- log(x0[2 * n])
   solv_idea_5_sp <- nleqslv::nleqslv(
     x = x0, fn = gradpsiT_idea5, veccCondMeanVarObj = vecc_obj,
-    a = lower, b = upper, nu = nu, global = "pwldog", method = "Broyden"
+    a = lower, b = upper, nu = df, global = "pwldog", method = "Broyden"
   )
   soln <- solv_idea_5_sp$x
   exitflag <- solv_idea_5_sp$termcd
@@ -136,23 +136,23 @@ pmvt <- function(lower, upper, mean, nu, locs = NULL, covName = "matern15_isotro
   soln[n] <- exp(soln[n])
   x <- soln[1:n]
   beta <- soln[(n + 1):(2 * n)]
-  
-  # TBC
-  
-  # compute MVN probs and est error ---------------------------------
-  exp_psi <- sample_psi_idea5_cpp(vecc_obj, lower, upper,
+  eta <- beta[n]
+  # compute MVT probs and est error ---------------------------------
+  const <- log(2*pi) / 2 - lgamma(df / 2) - (df / 2 - 1) * log(2) +
+    TruncatedNormal::lnNpr(-eta, Inf) + 0.5 * eta^2;
+  exp_psi <- sample_psiT_idea5_cpp(vecc_obj, lower, upper, df,
     beta = beta, N_level1 = NLevel1,
     N_level2 = NLevel2
   )
   if (retlog) {
     exponent <- min(exp_psi[[2]])
     log_est_prob <- exponent +
-      log(mean(exp_psi[[1]] * exp(exp_psi[[2]] - exponent)))
+      log(mean(exp_psi[[1]] * exp(exp_psi[[2]] - exponent))) + const
     return(log_est_prob)
   } else {
     exp_psi <- exp_psi[[1]] * exp(exp_psi[[2]])
-    est_prob <- mean(exp_psi)
-    est_prob_err <- stats::sd(exp_psi) / sqrt(NLevel1)
+    est_prob <- mean(exp_psi) * exp(const)
+    est_prob_err <- stats::sd(exp_psi) / sqrt(NLevel1) * exp(const)
     attr(est_prob, "error") <- est_prob_err
     return(est_prob)
   }
@@ -165,8 +165,8 @@ pmvt <- function(lower, upper, mean, nu, locs = NULL, covName = "matern15_isotro
 # library(TruncatedNormal)
 # library(mvtnorm)
 # library(VeccTMVN)
-#
-#
+# 
+# 
 # ## example MVN probabilities --------------------------------
 # set.seed(123)
 # n1 <- 10
@@ -174,10 +174,11 @@ pmvt <- function(lower, upper, mean, nu, locs = NULL, covName = "matern15_isotro
 # n <- n1 * n2
 # locs <- as.matrix(expand.grid((1:n1) / n1, (1:n2) / n2))
 # covparms <- c(2, 0.3, 0)
+# nu <- 10
 # cov_mat <- matern15_isotropic(covparms, locs)
 # a_list <- list(rep(-Inf, n), rep(-1, n), -runif(n) * 2 - 4)
 # b_list <- list(rep(-2, n), rep(1, n), -runif(n) * 2)
-#
+# 
 # ## Compute MVN probs --------------------------------
 # N_level1 <- 12 # Level 1 MC size
 # N_level2 <- 1e4 # Level 2 MC size
@@ -185,21 +186,27 @@ pmvt <- function(lower, upper, mean, nu, locs = NULL, covName = "matern15_isotro
 # for (i in 1:length(a_list)) {
 #   a <- a_list[[i]]
 #   b <- b_list[[i]]
+#   
+#   VeccTMVN::pmvt(a, b, 0, nu, locs,
+#                  covName = "matern15_isotropic",
+#                  covParms = covparms, m = m, verbose = FALSE
+#   )
+#   
 #   ### Compute MVN prob with idea V -----------------------
-#   time_Vecc <- system.time(est_Vecc <- VeccTMVN::pmvn(a, b, 0, locs,
+#   time_Vecc <- system.time(est_Vecc <- VeccTMVN::pmvt(a, b, 0, nu, locs,
 #                                                       covName = "matern15_isotropic",
 #                                                       covParms = covparms, m = m, verbose = FALSE
 #   ))[[3]]
 #   ### Compute MVN prob with other methods -----------------------
-#   time_TN <- system.time(est_TN <- TruncatedNormal::pmvnorm(
+#   time_TN <- system.time(est_TN <- TruncatedNormal::pmvt(
 #     rep(0, n), cov_mat,
-#     lb = a, ub = b
+#     lb = a, ub = b, df = nu
 #   ))[[3]]
 #   time_TLR <- system.time(
-#     est_TLR <- tlrmvnmvt::pmvn(a, b, sigma = cov_mat)
+#     est_TLR <- tlrmvnmvt::pmvt(a, b, df = nu, sigma = cov_mat)
 #   )[[3]]
 #   time_Genz <- system.time(
-#     est_Genz <- mvtnorm::pmvnorm(a, b, sigma = cov_mat)
+#     est_Genz <- mvtnorm::pmvt(a, b, df = nu, sigma = cov_mat)
 #   )[[3]]
 #   cat(
 #     "est_Vecc", est_Vecc, "err_Vecc", attributes(est_Vecc)$error, "time_Vecc",

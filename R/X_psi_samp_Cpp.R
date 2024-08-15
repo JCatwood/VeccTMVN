@@ -30,6 +30,19 @@ sample_psi_idea5_cpp <- function(veccCondMeanVarObj, a, b,
 }
 
 
+sample_psiT_idea5_cpp <- function(veccCondMeanVarObj, a, b, nu,
+                                  beta = rep(0, length(a)), N_level1 = 10,
+                                  N_level2 = 1000, mu = rep(0, length(a))) {
+  cond_sd <- sqrt(veccCondMeanVarObj$cond_var)
+  exp_psi <- mvtdns(a, b, nu, veccCondMeanVarObj$nn, mu,
+                    veccCondMeanVarObj$cond_mean_coeff,
+                    cond_sd, beta,
+                    NLevel1 = N_level1, NLevel2 = N_level2
+  )
+  return(exp_psi)
+}
+
+
 # # TEST -------------------------------------------------------
 # library(GpGp)
 # library(TruncatedNormal)

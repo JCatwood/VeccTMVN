@@ -1,11 +1,12 @@
-library(GpGp)
-library(truncnorm)
-
-#' Simulate truncated multivariate normal (TMVN) using the Vecchia approximation
+#' Simulate truncated multivariate normal (TMVT) using the Vecchia approximation
 #'
-#' @param lower lower bound vector for TMVN
-#' @param upper upper bound vector for TMVN
-#' @param mean MVN mean
+#' @import GpGp
+#' @import truncnorm
+#' 
+#' @param lower lower bound vector for TMVT
+#' @param upper upper bound vector for TMVT
+#' @param delta MVT shifting parameter
+#' @param df degrees of freedom
 #' @param locs location (feature) matrix n X d
 #' @param covName covariance function name from the `GpGp` package
 #' @param covParms parameters for `covName`
@@ -16,12 +17,12 @@ library(truncnorm)
 #' @return n X N matrix of generated samples
 #'
 #' @export
-mvrandn <- function(lower, upper, mean, locs = NULL,
+mvrandt <- function(lower, upper, delta, df, locs = NULL,
                     covName = "matern15_isotropic", covParms = c(1.0, 0.1, 0.0),
                     m = 30, sigma = NULL, N = 1e3, verbose = FALSE) {
-  ## standardize the input MVN prob -----------------------------
-  lower <- lower - mean
-  upper <- upper - mean
+  ## standardize the input MVT prob -----------------------------
+  lower <- lower - delta
+  upper <- upper - delta
   if (is.null(sigma)) {
     n <- nrow(locs)
     use_sigma <- FALSE
@@ -50,7 +51,7 @@ mvrandn <- function(lower, upper, mean, locs = NULL,
     upper[upper > 10] <- 10
   }
   if (any(upper < lower)) {
-    stop("Invalid MVN probability. Truncated marginal
+    stop("Invalid MVT probability. Truncated marginal
          probabilities have negative value(s)\n")
   }
   lower_upper <- matrix(0, n, 2)
@@ -100,15 +101,14 @@ mvrandn <- function(lower, upper, mean, locs = NULL,
       )
     }
   }
-  ## generate MVN samples ---------------------------------
-  samp_Vecc_ord <- mvnrnd_wrap(
-    lower, upper,
-    mu = 0,
+  ## generate MVT samples ---------------------------------
+  samp_Vecc_ord <- mvtrnd_wrap(
+    lower, upper, df,
     NN = NN, veccObj = vecc_obj, N = N, verbose = verbose
   )
   ord_rev <- integer(n)
   ord_rev[ord] <- 1:n
-  samp_Vecc <- margin_sd * samp_Vecc_ord[ord_rev, ] + mean
+  samp_Vecc <- margin_sd * samp_Vecc_ord[ord_rev, ] + delta
   return(samp_Vecc)
 }
 
@@ -125,21 +125,19 @@ mvrandn <- function(lower, upper, mean, locs = NULL,
 # locs <- as.matrix(expand.grid((1:n1) / n1, (1:n2) / n2))
 # covparms <- c(2, 0.1, 0)
 # mu <- rep(1, n)
+# nu <- 10
 # N <- 1000
 # cov_mat <- matern15_isotropic(covparms, locs)
 # a <- rep(-1, n)
 # b <- rep(-0, n)
-# samp_TN <- TruncatedNormal::mvrandn(
-#   a, b, cov_mat,
+# samp_TN <- TruncatedNormal::mvrandt(
+#   a, b, cov_mat, df = nu,
 #   n = N, mu = mu
 # )
-# samp_Vecc <- mvrandn(
-#   a, b, mu, locs, "matern15_isotropic", covparms,
+# samp_Vecc <- VeccTMVN::mvrandt(
+#   a, b, mu, nu, locs, "matern15_isotropic", covparms,
 #   m = 30, N = N, verbose = TRUE
 # )
 # ##  histogram for verification -------------------
-# par(mfrow = c(1, 2))
-# hist(samp_Vecc, main = "Vecc Samples")
-# hist(samp_TN, main = "TN Samples")
-# image(matrix(samp_TN[, 1], n1, n2))
-# image(matrix(samp_Vecc[, 1], n1, n2))
+# cat("Mean averaged absolute difference of prediction", 
+#     mean(abs(rowMeans(samp_TN) - rowMeans(samp_Vecc))), "\n")
