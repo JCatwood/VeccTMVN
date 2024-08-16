@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnd_TMVT.R
 \name{mvrandt}
 \alias{mvrandt}
-\title{Simulate truncated multivariate normal (TMVN) using the Vecchia approximation}
+\title{Simulate truncated multivariate normal (TMVT) using the Vecchia approximation}
 \usage{
 mvrandt(
   lower,
@@ -45,5 +45,5 @@ mvrandt(
 n X N matrix of generated samples
 }
 \description{
-Simulate truncated multivariate normal (TMVN) using the Vecchia approximation
+Simulate truncated multivariate normal (TMVT) using the Vecchia approximation
 }

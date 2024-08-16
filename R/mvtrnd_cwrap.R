@@ -1,6 +1,7 @@
 #' Wrapper of the \code{mvtrnd} function written in C++
 #' 
 #' @import truncnorm
+#' @noRd
 mvtrnd_wrap <- function(a, b, df, NN, veccObj, N, verbose = 0) {
   n <- length(a)
   tmp <- cbind(a, b)
@@ -43,7 +44,7 @@ mvtrnd_wrap <- function(a, b, df, NN, veccObj, N, verbose = 0) {
       sqrt(veccObj$cond_var), beta, n_sim
     )
     ntotsim <- ntotsim + n_sim
-    idx <- rexp(n_sim) > (psi_star - call$logpr) # acceptance tests
+    idx <- stats::rexp(n_sim) > (psi_star - call$logpr) # acceptance tests
     m <- sum(idx)
     if (m > N - accept) {
       m <- N - accept
