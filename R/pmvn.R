@@ -3,6 +3,8 @@ library(truncnorm)
 
 #' Compute multivariate normal (MVN) probabilities that have spatial covariance
 #' matrices using Vecchia approximation
+#' @importFrom TruncatedNormal cholperm
+#' @importFrom utils getFromNamespace
 #'
 #' @param lower lower bound vector for TMVN
 #' @param upper upper bound vector for TMVN
@@ -77,6 +79,8 @@ pmvn <- function(lower, upper, mean, locs = NULL, covName = "matern15_isotropic"
       locs <- locs[ord, , drop = FALSE]
     }
   } else if (reorder == 2) {
+    cov_func_GpGp <- utils::getFromNamespace(covName, "GpGp")
+    sigma <- cov_func_GpGp(covParms, locs)  # TBC
     if (use_sigma) {
       ord <- Vecc_reorder(lower, upper, m_ord, covMat = sigma)$order
     } else {
