@@ -6,6 +6,8 @@
 #' @importFrom truncnorm etruncnorm
 #' @importFrom nleqslv nleqslv
 #' @importFrom stats runif
+#' @importFrom TruncatedNormal cholperm
+#' @importFrom utils getFromNamespace
 #'
 #' @param lower lower bound vector for TMVT
 #' @param upper upper bound vector for TMVT
@@ -18,8 +20,9 @@
 #' @param m2 the bigger Vecchia conditioning set size for Level 2 MC
 #' @param sigma dense covariance matrix, not needed when `locs` is not null
 #' @param reorder whether to reorder integration variables. `0` for no,
-#' `1` for FIC-based univariate ordering, and `2` for Vecchia-based univariate
-#' ordering
+#' `1` for FIC-based univariate ordering, `2` for Vecchia-based univariate
+#' ordering, and `3` for the reordering implemented in TruncatedNormal, 
+#' which appeared faster than `2`
 #' @param NLevel1 first level Monte Carlo sample size
 #' @param NLevel2 second level Monte Carlo sample size
 #' @param verbose verbose or not
@@ -93,6 +96,19 @@ pmvt_MLMC <- function(lower, upper, delta, df, locs = NULL, covName = "matern15_
         lower, upper, m_ord, locs, covName, covParms
       )$order
     }
+    lower <- lower[ord]
+    upper <- upper[ord]
+    if (use_sigma) {
+      sigma <- sigma[ord, ord, drop = FALSE]
+    } else {
+      locs <- locs[ord, , drop = FALSE]
+    }
+  } else if (reorder == 3) {
+    if (!use_sigma) {
+      cov_func_GpGp <- utils::getFromNamespace(covName, "GpGp")
+      sigma <- cov_func_GpGp(covParms, locs)
+    }
+    ord <- TruncatedNormal::cholperm(sigma, lower, upper)$perm
     lower <- lower[ord]
     upper <- upper[ord]
     if (use_sigma) {

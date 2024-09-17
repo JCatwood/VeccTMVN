@@ -45,8 +45,9 @@ pmvn_MLMC(
 \item{sigma}{dense covariance matrix, not needed when `locs` is not null}
 
 \item{reorder}{whether to reorder integration variables. `0` for no,
-`1` for FIC-based univariate ordering, and `2` for Vecchia-based univariate
-ordering}
+`1` for FIC-based univariate ordering, `2` for Vecchia-based univariate
+ordering, and `3` for the reordering implemented in TruncatedNormal, 
+which appeared faster than `2`}
 
 \item{NLevel1}{first level Monte Carlo sample size}
 
