@@ -131,6 +131,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// univar_order
+IntegerVector univar_order(NumericVector a, NumericVector b, NumericMatrix sigma);
+RcppExport SEXP _VeccTMVN_univar_order(SEXP aSEXP, SEXP bSEXP, SEXP sigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type a(aSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type b(bSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type sigma(sigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(univar_order(a, b, sigma));
+    return rcpp_result_gen;
+END_RCPP
+}
 // univar_order_vecc
 List univar_order_vecc(arma::vec a, arma::vec b, arma::mat corrMat, int m);
 RcppExport SEXP _VeccTMVN_univar_order_vecc(SEXP aSEXP, SEXP bSEXP, SEXP corrMatSEXP, SEXP mSEXP) {
@@ -154,6 +167,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_VeccTMVN_mvtdns", (DL_FUNC) &_VeccTMVN_mvtdns, 10},
     {"_VeccTMVN_mvtrnd", (DL_FUNC) &_VeccTMVN_mvtrnd, 8},
     {"_VeccTMVN_sp_mat_mul_query", (DL_FUNC) &_VeccTMVN_sp_mat_mul_query, 5},
+    {"_VeccTMVN_univar_order", (DL_FUNC) &_VeccTMVN_univar_order, 3},
     {"_VeccTMVN_univar_order_vecc", (DL_FUNC) &_VeccTMVN_univar_order_vecc, 4},
     {NULL, NULL, 0}
 };

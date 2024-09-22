@@ -29,6 +29,19 @@ sp_mat_mul_query <- function(queryRow, queryCol, idx, cidx, val) {
     .Call('_VeccTMVN_sp_mat_mul_query', PACKAGE = 'VeccTMVN', queryRow, queryCol, idx, cidx, val)
 }
 
+#' Univariate variable reordering, described in Genz and Bretz (2009)
+#' If failed due to PD singularity, the unfinished order will be returned 
+#' and a warning will be issued
+#'
+#' @param a lower integration limits
+#' @param b upper integration limits
+#' @param sigma covariance matrix
+#' @return the new order
+#' @export
+univar_order <- function(a, b, sigma) {
+    .Call('_VeccTMVN_univar_order', PACKAGE = 'VeccTMVN', a, b, sigma)
+}
+
 univar_order_vecc <- function(a, b, corrMat, m) {
     .Call('_VeccTMVN_univar_order_vecc', PACKAGE = 'VeccTMVN', a, b, corrMat, m)
 }
