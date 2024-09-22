@@ -1,3 +1,3 @@
-# VeccTMVN 1.1.0
+# VeccTMVN 1.1.2
 
-* Added functions for computing multivariate Student-t probabilities and sampling from truncated multivariate Student-t distributions.
+* Added univariate reordering, which appeared faster than Vecchia-based reordering for n smaller than 6400
