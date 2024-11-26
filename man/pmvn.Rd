@@ -41,8 +41,7 @@ pmvn(
 
 \item{reorder}{whether to reorder integration variables. `0` for no,
 `1` for FIC-based univariate ordering, `2` for Vecchia-based univariate
-ordering, and `3` for the reordering implemented in TruncatedNormal, 
-which appeared faster than `2`}
+ordering, and `3` for univariate reordering, which appeared faster than `2`}
 
 \item{NLevel1}{first level Monte Carlo sample size}
 
