@@ -47,7 +47,12 @@ mvnrnd_wrap <- function(a, b, mu, NN, veccObj, N, verbose = 0) {
   solv_xstar <- stats::optim(
     x_star,
     fn = function(x, ...) {
-      -psi_wrapper(x, ...)
+      val <- -psi_wrapper(x, ...)
+      if (is.infinite(val)) {
+        return(1e20)
+      } else {
+        return(val)
+      }
     },
     gr = function(x, ...) {
       -dpsi_dx(x, ...)
