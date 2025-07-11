@@ -1,8 +1,8 @@
 Package: VeccTMVN
 Type: Package
 Title: Multivariate Normal Probabilities using Vecchia Approximation
-Version: 1.2.1
-Date: 2024-11-26
+Version: 1.3.0
+Date: 2025-07-14
 Authors@R: 
   c(person("Jian Cao", role = c("aut", "cre"), email = "jcao2416@gmail.com"), 
     person("Matthias Katzfuss", role = "aut"))

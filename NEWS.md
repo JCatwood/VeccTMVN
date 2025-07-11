@@ -1,3 +1,4 @@
-# VeccTMVN 1.2.1
+# VeccTMVN 1.3.0
 
-* Updated documentation
+* Make the maximum input dimension for mvrandn and mvrandt 1000.
+* Add function guard. Inf during optimization are replaced by 1e20.
