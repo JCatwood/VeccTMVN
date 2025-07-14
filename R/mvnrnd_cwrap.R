@@ -25,10 +25,9 @@ mvnrnd_wrap <- function(a, b, mu, NN, veccObj, N, verbose = 0) {
       )
       ret$jac_grad
     },
-    method = "L-BFGS-B",
+    method = "BFGS",
     veccCondMeanVarObj = veccObj,
     a = a, b = b, mu = mu, verbose = verbose,
-    lower = c(a, rep(-Inf, n)), upper = c(b, rep(Inf, n)),
     control = list(maxit = 500)
   )
   if (verbose) {
