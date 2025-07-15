@@ -1,4 +1,6 @@
-# VeccTMVN 1.3.0
+# VeccTMVN 1.3.1
 
-* Make the maximum input dimension for mvrandn and mvrandt 1000.
-* Add function guard. Inf during optimization are replaced by 1e20.
+* Change the optimization method used to optimize psi w.r.t. x, beta to 'BFGS' from 'L-BFGS-B'. 'BFGS' appears more suitable for convex optimization.
+* Add the optimization control of above optimization to use the absolute tolerance of 1e-6.
+* Increase the max iteration number of the above optimization to 1500.
+* Remove the second stage optimization.
