@@ -37,9 +37,9 @@ mvrandn <- function(lower, upper, mean, locs = NULL,
     lower <- lower / margin_sd
     sigma <- t(t(sigma / margin_sd) / margin_sd)
   }
-  if (n > 1000) {
+  if (n > 2000) {
     stop("The package currently only support sampling TMVN/TMVT distributions
-         no greater than 1000 dimensions due to fast decaying acceptance rate")
+         no greater than 2000 dimensions due to fast decaying acceptance rate")
   }
   if (any(lower < -10)) {
     lower[lower < -10] <- -10
