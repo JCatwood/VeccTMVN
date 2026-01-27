@@ -24,6 +24,10 @@ loglk_censor_MVN <- function(locs, indCensor, y, bCensor,
                              verbose = TRUE) {
   # extract and separate observed and censored data --------------------------------
   n <- nrow(locs)
+  if (n <= m) {
+    stop("Invalid Vecchia neighbourhood size: must be at at most the number of 
+         locations or dimension of the covariance matrix.")
+  }
   n_obs <- n - length(indCensor)
   n_censor <- length(indCensor)
   if (n_obs < 1 | n_censor < 1) {

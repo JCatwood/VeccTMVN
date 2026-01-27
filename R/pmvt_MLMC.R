@@ -52,6 +52,10 @@ pmvt_MLMC <- function(lower, upper, delta, df, locs = NULL, covName = "matern15_
     lower <- lower / margin_sd
     sigma <- t(t(sigma / margin_sd) / margin_sd)
   }
+  if (n <= m1 || n <= m2) {
+    stop("Invalid Vecchia neighbourhood size m1/m2: must be at at most the number of 
+         locations or dimension of the covariance matrix.")
+  }
   if (any(upper < lower)) {
     stop("Invalid MVN probability. Truncated marginal
          probabilities have negative value(s)\n")
